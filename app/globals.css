@@ -42,7 +42,9 @@
   transition
   duration-150
   hover:bg-blue-600
-  active:bg-blue-700;
+  active:bg-blue-700
+  active:shadow-inner 
+  active:shadow-black;
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;

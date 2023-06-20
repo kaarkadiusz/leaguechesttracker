@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 
 import type { Database } from '@/types/supabase'
+import Alert from '@/components/Alert'
 
 interface User {
   email: string
@@ -40,7 +41,7 @@ export default function Login() {
       email,
       password,
       options: {
-        emailRedirectTo: `${location.origin}/auth/callback`,
+        emailRedirectTo: `${location.origin}/auth/confirm-signup`,
       },
     })
     router.refresh()
@@ -144,7 +145,7 @@ export default function Login() {
           role="status">
         </div>
       </div>
-      {/* {user.number !== 0 && JSON.stringify(user, null, 1)} */}
+      <Alert text={['abc','efg']}/>
     </div>
   )
 }
