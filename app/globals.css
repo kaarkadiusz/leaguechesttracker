@@ -3,25 +3,51 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-hex: #212121;
+  --background-hex: #f8f9fa;
+  --background-slight: #e9ecef;
+  --background-slighter: #ced4da;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --foreground-hex: #e2e2e2;
+    --background-hex: #212529;
+    --background-slight: #343a40;
+    --background-slighter: #6c757d;
   }
 }
-
+.my-input {
+  @apply 
+  bg-transparent 
+  border-b-2 
+  transition 
+  duration-300 
+  focus:outline-none
+  focus:border-blue-500 
+  invalid:border-red-500
+  valid:border-blue-500;
+}
+.my-input:placeholder-shown {
+  @apply border-[var(--foreground-hex)];
+}
+.my-input:focus:placeholder-shown {
+  @apply border-blue-500 ;
+}
+.my-button {
+  @apply
+  bg-blue-500
+  p-1
+  rounded-lg
+  transition
+  duration-150
+  hover:bg-blue-600
+  active:bg-blue-700;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  color: var(--foreground-hex);
+  background: var(--background-hex);
 }
