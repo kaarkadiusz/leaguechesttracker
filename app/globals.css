@@ -41,13 +41,18 @@
   rounded-lg
   transition
   duration-150
-  hover:bg-blue-600
-  active:bg-blue-700
-  active:shadow-inner 
-  active:shadow-black;
+  enabled:hover:bg-blue-600
+  enabled:active:bg-blue-700
+  enabled:active:shadow-inner 
+  enabled:active:shadow-black
+  disabled:bg-gray-600;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+.alert-parent:hover .alert-close {
+  @apply opacity-100
 }
 body {
   color: var(--foreground-hex);

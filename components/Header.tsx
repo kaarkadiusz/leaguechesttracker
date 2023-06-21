@@ -25,14 +25,17 @@ export default function Header({user = undefined} : Props) {
               return;
             case user === null:
               return (
-                <button className='my-button w-24 text-[#e2e2e2]' onClick={() => router.push("/login")}>
-                  Sign in
-                </button>
+                <div>
+                  <i className='mr-2' title='Data will be saved to localstorage'>You are not signed in</i>
+                  <button className='my-button w-24 text-[#e2e2e2]' onClick={() => router.push("/login")}>
+                    Sign in
+                  </button>
+                </div>
               );
             case user?.aud === 'authenticated':
               return (
                 <div>
-                  <i className='mr-2'>You are signed in</i>
+                  <i className='mr-2' title='Data will be saved to server'>You are signed in</i>
                   <button className='my-button w-24 text-[#e2e2e2]' onClick={() => handleSignOut()}>
                     Sign out
                   </button>

@@ -7,7 +7,7 @@ import ListOfChampions from './ListOfChampions'
 
 import { User } from '@supabase/auth-helpers-nextjs'
 import type { Database } from '@/types/supabase'
-import Alert from './Alert'
+import AlertList, { AlertProps } from './AlertList'
 
 type Champion = Omit<Database['public']['Tables']['champions']['Row'], 'image'>
 
@@ -29,6 +29,7 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
   const [championsFiltered, setChampionsFiltered] = useState<ChampionsFiltered>()
   const [search, setSearch] = useState<string>("")
   const [loading, setLoading] = useState<Loading>({ saveButton: { isLoading: false } })
+  const [alerts, setAlerts] = useState<AlertProps[]>([])
   const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
@@ -103,15 +104,38 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
     })
     if (user) {
       const { data, error } = await supabase.from('champions_by_user').update({ champions_ids: championsByUser }).eq('id', user.id)
-      console.log(data)
-      console.log(error)
+      if(!error)
+      {
+        setAlerts(prevState => {
+          prevState.push({text: 'Saved to server.', style: 'SUCCESS'})
+          return [...prevState]
+        })
+      }
+      else
+      {
+        setAlerts(prevState => {
+          prevState.push({text: `Saved to localStorage due to server error (${error.message}).`, style: 'WARNING'})
+          return [...prevState]
+        })
+      }
     }
     else {
       localStorage.setItem('champion_ids', ['[', championsByUser.toString(), ']'].join(''))
+      setAlerts(prevState => {
+        prevState.push({text: 'Saved to localStorage.', style: 'SUCCESS'})
+        return [...prevState]
+      })
     }
     setLoading(prevState => {
       let newState = { ...prevState, saveButton: { isLoading: false } }
       return newState
+    })
+  }
+
+  const closeCallback = (index: number) => {
+    setAlerts(prevState => {
+      prevState.splice(index, 1)
+      return [...prevState]
     })
   }
 
@@ -169,6 +193,7 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
           </i>
         </div>
       }
+      <AlertList alerts={alerts} closeCallback={closeCallback} />
     </main>
   )
 }

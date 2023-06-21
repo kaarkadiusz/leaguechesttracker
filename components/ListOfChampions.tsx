@@ -1,7 +1,5 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-
 import type { Database } from '@/types/supabase'
 
 type Champion = Omit<Database['public']['Tables']['champions']['Row'], 'image'>
