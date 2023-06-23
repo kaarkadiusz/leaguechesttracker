@@ -44,7 +44,7 @@ export default function Login() {
     fetchUser()
 
     
-  }, [])
+  }, [supabase.auth])
 
   useEffect(() => {
     if(user && user.signedIn === 2) {

@@ -8,6 +8,7 @@ import type { Database } from '@/types/supabase'
 export default async function Home() {
   const supabase = createServerComponentClient<Database>({ cookies })
   const { data: { user } } = await supabase.auth.getUser()
+  
 
   return (
     <main className="flex flex-col h-screen">
