@@ -415,7 +415,7 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
       {modal.type === ModalType.CLEARDATA &&
         <div className="absolute w-screen h-screen bg-black/50 z-10 flex justify-center items-center backdrop-blur">
           <div className='bg-[var(--background-hex)] flex flex-col p-4 w-fit h-fit gap-1'>
-            <p className=' text-red-500'>This action will clear your current tab's data.</p>
+            <p className='text-red-500'>This action will clear your current tab&apos;s data.</p>
             <div className='flex flex-row justify-end gap-2'>
               <button className='bg-yellow-500 px-2 text-[#e2e2e2]' onClick={() => { handleClear(); setModal({ type: ModalType.CLOSED, text: "" }) }}>Clear</button>
               <button className='bg-slate-400 px-2 text-[#e2e2e2]' onClick={() => setModal({ type: ModalType.CLOSED, text: "" })}>Close</button>
