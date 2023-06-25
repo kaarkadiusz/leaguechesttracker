@@ -25,12 +25,19 @@ type Loading = {
   };
 };
 
+type Settings = {
+  gridCols: string;
+  portraits: boolean;
+  alertDismiss: string;
+}
+
 enum ModalType {
   CLOSED,
   EXPORTDATA,
   IMPORTDATA,
   CLEARDATA,
-  EDITTABS
+  EDITTABS,
+  SETTINGS
 }
 
 export default function ClientComponent({ user = undefined }: { user?: User | null }): JSX.Element {
@@ -42,7 +49,30 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
   const [loading, setLoading] = useState<Loading>({ listOfChampions: { isLoading: true }, saveButton: { isLoading: false } });
   const [alerts, setAlerts] = useState<AlertProps[]>([]);
   const [modal, setModal] = useState<{ type: ModalType, text: string }>({ type: ModalType.CLOSED, text: '' });
+  const [settings, setSettings] = useState<Settings>({ gridCols: 'auto', portraits: false, alertDismiss: '0' })
   const supabase = createClientComponentClient<Database>();
+
+  useEffect(() => {
+    const localStorage_settings = localStorage.getItem('settings')
+    if(localStorage_settings)
+    {
+      try {
+        let json = JSON.parse(localStorage_settings)
+        setSettings(prevState => ({
+          ...prevState,
+          gridCols: json.gridCols ? json.gridCols : prevState.gridCols,
+          portraits: json.portraits ? json.portraits : prevState.portraits,
+          alertDismiss: json.alertDismiss ? json.alertDismiss : prevState.alertDismiss
+        }))
+      } catch (error) {
+        return
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('settings', JSON.stringify(settings))
+  }, [settings])
 
   useEffect(() => {
     const getData = async () => {
@@ -79,7 +109,7 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
           setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
           return;
         }
-        
+
         setChampionsByUser(json);
       }
     };
@@ -126,6 +156,23 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
 
   function TabsModal({ initial }: { initial: string[] }) {
     const [tabs, setTabs] = useState<string[]>(initial)
+    const [disabled, setDisabled] = useState(false)
+    const disabledRef = useRef(true)
+
+    useEffect(() => {
+      if (tabs.length !== new Set(tabs).size || !tabs.every((item) => item !== '')) {
+        if (!disabledRef.current) {
+          setDisabled(true)
+          disabledRef.current = true
+        }
+      }
+      else {
+        if (disabledRef.current) {
+          setDisabled(false)
+          disabledRef.current = false
+        }
+      }
+    }, [tabs])
 
     const saveTabs = () => {
       if (tabs.length !== new Set(tabs).size || !tabs.every((item) => item !== '')) {
@@ -174,8 +221,9 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
         }
         <div className='flex flex-row justify-end gap-2'>
           <button
-            className='bg-blue-500 px-2 text-[#e2e2e2]'
+            className='bg-blue-500 px-2 text-[#e2e2e2] disabled:bg-gray-600'
             onClick={saveTabs}
+            disabled={disabled}
           >
             Save
           </button>
@@ -257,6 +305,10 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
       }
       case ModalType.EDITTABS: {
         setModal({ type: ModalType.EDITTABS, text: "" })
+        break
+      }
+      case ModalType.SETTINGS: {
+        setModal({ type: ModalType.SETTINGS, text: "" })
         break
       }
     }
@@ -341,20 +393,12 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
           </div>
           <div className='w-full items-end justify-end flex flex-row gap-1'>
             <button
-              className='bg-slate-400 px-2 text-[#e2e2e2] disabled:bg-gray-600'
-              title='Change settings. (not yet implemented)'
+              className='bg-slate-400 px-2 text-[#e2e2e2] disabled:bg-gray-600 mr-2'
+              title='Change settings.'
               disabled={loading.listOfChampions.isLoading}
-            // onClick={handleClear}
+              onClick={() => openModal(ModalType.SETTINGS)}
             >
               Settings
-            </button>
-            <button
-              className='bg-slate-400 px-2 text-[#e2e2e2] disabled:bg-gray-600 mr-2'
-              title='Edit tabs.'
-              disabled={loading.listOfChampions.isLoading}
-              onClick={() => openModal(ModalType.EDITTABS)}
-            >
-              Edit
             </button>
             <select name="tabs" value={championsByUser.chosen} className='w-2/5 bg-[var(--background-slight)]'
               onChange={(e) => (setChampionsByUser(prevState => ({ ...prevState, chosen: e.target.value })))}>
@@ -364,15 +408,23 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
                 </option>
               )}
             </select>
+            <button
+              className='bg-slate-400 px-2 text-[#e2e2e2] disabled:bg-gray-600'
+              title='Edit tabs.'
+              disabled={loading.listOfChampions.isLoading}
+              onClick={() => openModal(ModalType.EDITTABS)}
+            >
+              Edit
+            </button>
           </div>
         </header>
         {championsFiltered &&
           <>
             <div className='overflow-y-scroll scrollbar-hide bg-lime-800/20 border-r-2 border-t-4 border-[var(--background-slight)]'>
-              <ListOfChampions champions={championsFiltered.difference} callback={callback} />
+              <ListOfChampions champions={championsFiltered.difference} callback={callback} gridCols={settings.gridCols} portraits={settings.portraits} />
             </div>
             <div className='overflow-y-scroll scrollbar-hide bg-rose-800/20 border-l-2 border-t-4 border-[var(--background-slight)]'>
-              <ListOfChampions champions={championsFiltered.intersection} callback={callback} />
+              <ListOfChampions champions={championsFiltered.intersection} callback={callback} gridCols={settings.gridCols} portraits={settings.portraits} />
             </div>
           </>
         }
@@ -383,7 +435,7 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
             </i>
           </div>
         }
-        <AlertList alerts={alerts} closeCallback={closeCallback} />
+        <AlertList alerts={alerts} closeCallback={closeCallback} alertDismiss={settings.alertDismiss}/>
       </main>
       {modal.type === ModalType.EXPORTDATA &&
         <div className="absolute w-screen h-screen bg-black/50 z-10 flex justify-center items-center backdrop-blur">
@@ -427,6 +479,57 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
         <div className="absolute w-screen h-screen bg-black/50 z-10 flex justify-center items-center backdrop-blur">
           <div className='bg-[var(--background-hex)] flex flex-col p-4 w-fit h-fit gap-1'>
             <TabsModal initial={Object.keys(championsByUser.lists)} />
+          </div>
+        </div>
+      }
+      {modal.type === ModalType.SETTINGS &&
+        <div className="absolute w-screen h-screen bg-black/50 z-10 flex justify-center items-center backdrop-blur">
+          <div className='bg-[var(--background-hex)] flex flex-col p-4 h-fit gap-1 
+             w-1/2 sm:w-1/2 md:w-1/3 lg:w-1/4 2xl:w-1/6'>
+            <div className='flex flex-row w-full justify-between'>
+              <p>Grid columns:</p>
+              <select name="gridCols" value={settings.gridCols} className='flex w-2/5 bg-[var(--background-slight)]'
+                onChange={(e) => setSettings(prevState => ({ ...prevState, gridCols: e.target.value }))}>
+                <option value={'auto'}>auto</option>
+                <option value={'2'}>2</option>
+                <option value={'3'}>3</option>
+                <option value={'4'}>4</option>
+                <option value={'5'}>5</option>
+                <option value={'6'}>6</option>
+                <option value={'7'}>7</option>
+                <option value={'8'}>8</option>
+                <option value={'9'}>9</option>
+                <option value={'10'}>10</option>
+              </select>
+            </div>
+            <div className='flex flex-row w-full justify-between'>
+              <p>Portraits:</p>
+              <select name="gridCols" value={settings.portraits ? '1' : '0'} className='flex w-2/5 bg-[var(--background-slight)]'
+                onChange={(e) => setSettings(prevState => ({ ...prevState, portraits: (e.target.value === '0' ? false : true) }))}>
+                <option value={'0'}>rectangular</option>
+                <option value={'1'}>circular</option>
+              </select>
+            </div>
+            <div className='flex flex-row w-full justify-between'>
+              <p>Dismiss alert:</p>
+              <select name="gridCols" value={settings.alertDismiss} className='flex w-2/5 bg-[var(--background-slight)]'
+                onChange={(e) => setSettings(prevState => ({ ...prevState, alertDismiss: (e.target.value) }))}>
+                <option value={'0'}>0s</option>
+                <option value={'1'}>1s</option>
+                <option value={'2'}>2s</option>
+                <option value={'3'}>3s</option>
+                <option value={'4'}>4s</option>
+                <option value={'5'}>5s</option>
+                <option value={'6'}>6s</option>
+                <option value={'7'}>7s</option>
+                <option value={'8'}>8s</option>
+                <option value={'9'}>9s</option>
+                <option value={'10'}>10s</option>
+              </select>
+            </div>
+            <div className='flex flex-row justify-end gap-2'>
+              <button className='bg-slate-400 px-2 text-[#e2e2e2]' onClick={() => setModal({ type: ModalType.CLOSED, text: "" })}>Close</button>
+            </div>
           </div>
         </div>
       }

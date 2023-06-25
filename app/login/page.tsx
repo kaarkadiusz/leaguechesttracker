@@ -27,6 +27,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const [user, setUser] = useState<User>({ email: '', signedIn: 0 })
   const [loginAction, setLoginAction] = useState<LoginAction>(LoginAction.SIGNIN)
+  const alertDismiss = useRef<string>('0')
   const router = useRouter()
   const supabase = createClientComponentClient<Database>()
 
@@ -45,6 +46,20 @@ export default function Login() {
 
     
   }, [supabase.auth])
+
+  useEffect(() => {
+    const localStorage_settings = localStorage.getItem('settings')
+    if(localStorage_settings)
+    {
+      try {
+        let json = JSON.parse(localStorage_settings)
+        if(json.alertDismiss) alertDismiss.current = json.alertDismiss
+      } catch (error) {
+        return
+      }
+    }
+    document.title = `Login - ${document.title}`
+  }, [])
 
   useEffect(() => {
     if(user && user.signedIn === 2) {
@@ -276,7 +291,7 @@ export default function Login() {
           role="status">
         </div>
       </div>
-      <AlertList alerts={alerts} closeCallback={closeCallback} />
+      <AlertList alerts={alerts} closeCallback={closeCallback} alertDismiss={alertDismiss.current}/>
     </div>
   )
 }

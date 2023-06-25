@@ -11,12 +11,22 @@ export type AlertProps = {
     closeCallback: Function;
     style?: AlertStyle;
     customStyling?: string;
+    alertDismiss?: string;
 }
 
-export default function Alert({ text, closeCallback ,style = AlertStyle.DEFAULT, customStyling = "" }: AlertProps) {
-    // setTimeout(() => {
-    //     closeCallback()
-    // }, 5000);
+export default function Alert({ text, closeCallback ,style = AlertStyle.DEFAULT, customStyling = "", alertDismiss = '0' }: AlertProps) {
+    if(alertDismiss != '0')
+    {
+        try {
+            let seconds = parseInt(alertDismiss)
+            setTimeout(() => {
+                closeCallback()
+            }, seconds * 1000);
+        } catch (error) {
+            
+        }
+    }
+    
     return (
         <div className={`alert-parent text-center relative border-4 rounded-md w-fit h-fit px-6 py-2 opacity-90 ${style} ${customStyling}`}>
             <button onClick={() => closeCallback()} className="alert-close opacity-0 hover:opacity-100">
