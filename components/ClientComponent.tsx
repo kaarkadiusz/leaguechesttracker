@@ -9,7 +9,11 @@ import type { Database } from '@/types/supabase';
 import { ChampionsJSON, validate } from '@/types/champions_jsonschema';
 import AlertList, { AlertProps } from './AlertList';
 
-type Champion = Omit<Database['public']['Tables']['champions']['Row'], 'image'>;
+type Champion = {
+  id: number;
+  champion: string;
+  name: string;
+};
 
 type ChampionsFiltered = {
   intersection: Champion[];
@@ -54,8 +58,7 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
 
   useEffect(() => {
     const localStorage_settings = localStorage.getItem('settings')
-    if(localStorage_settings)
-    {
+    if (localStorage_settings) {
       try {
         let json = JSON.parse(localStorage_settings)
         setSettings(prevState => ({
@@ -76,47 +79,51 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
 
   useEffect(() => {
     const getData = async () => {
-      if (user) {
-        const [championsRes, championsByUserRes] = await Promise.all([
-          supabase.from('champions').select('id, name').then(res => res.data),
-          supabase.from('champions_by_user').select('champions').then(res => res.data),
-        ]);
-        champions.current = championsRes;
-        if (championsByUserRes && championsByUserRes[0]?.champions) {
-          let json = JSON.parse(atob(championsByUserRes[0].champions));
-          setChampionsByUser(json);
-        }
-        else setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
+      const res = await (await fetch(`/champion_data.json`)).json()
+      champions.current = res;
+      console.log(res)
+      let local_champions = localStorage.getItem('champions');
+      if (!local_champions) {
+        setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
+        return;
       }
-      else {
-        const [championsRes] = await Promise.all([
-          supabase.from('champions').select().then(res => res.data),
-        ]);
-        champions.current = championsRes;
-        let local_champions = localStorage.getItem('champions');
-        if (!local_champions) {
-          setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
-          return;
-        }
-        let json = null;
-        try {
-          json = JSON.parse(atob(local_champions));
-        } catch (error) {
-          setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
-          return;
-        }
-        if (!validate(json) || !Object.keys(json.lists).includes(json.chosen)) {
-          setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
-          return;
-        }
+      let json = null;
+      try {
+        json = JSON.parse(atob(local_champions));
+      } catch (error) {
+        setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
+        return;
+      }
+      if (!validate(json) || !Object.keys(json.lists).includes(json.chosen)) {
+        setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
+        return;
+      }
 
-        setChampionsByUser(json);
-      }
+      setChampionsByUser(json);
     };
+    //   if (user) {
+    //     const [championsRes, championsByUserRes] = await Promise.all([
+    //       supabase.from('champions').select('id, name').then(res => res.data),
+    //       supabase.from('champions_by_user').select('champions').then(res => res.data),
+    //     ]);
+    //     champions.current = championsRes;
+    //     if (championsByUserRes && championsByUserRes[0]?.champions) {
+    //       let json = JSON.parse(atob(championsByUserRes[0].champions));
+    //       setChampionsByUser(json);
+    //     }
+    //     else setChampionsByUser({ "lists": { "1": [] }, "chosen": "1" });
+    //   }
+    //   else {
+    //     const [championsRes] = await Promise.all([
+    //       supabase.from('champions').select().then(res => res.data),
+    //     ]);
+    //     champions.current = championsRes;
+    //   }
+    // };
 
     getData();
     setLoading(prevState => ({ ...prevState, listOfChampions: { isLoading: false } }));
-  }, [supabase, user]);
+  }, []);
 
   useEffect(() => {
     if (!championsByUser || !champions.current) return
@@ -435,7 +442,7 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
             </i>
           </div>
         }
-        <AlertList alerts={alerts} closeCallback={closeCallback} alertDismiss={settings.alertDismiss}/>
+        <AlertList alerts={alerts} closeCallback={closeCallback} alertDismiss={settings.alertDismiss} />
       </main>
       {modal.type === ModalType.EXPORTDATA &&
         <div className="absolute w-screen h-screen bg-black/50 z-10 flex justify-center items-center backdrop-blur">

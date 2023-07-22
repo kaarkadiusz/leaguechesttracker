@@ -4,7 +4,11 @@ import type { Database } from '@/types/supabase'
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
-type Champion = Omit<Database['public']['Tables']['champions']['Row'], 'image'>
+type Champion = {
+  id: number;
+  champion: string;
+  name: string;
+};
 
 interface Props {
   champions: Champion[];
@@ -51,7 +55,7 @@ export default function ListOfChampions({ champions, callback, gridCols, portrai
     <div className={`grid ${cols} gap-2 m-2`}>
       {champions.map((champion) =>
         <span key={champion.id} onClick={() => callback(champion.id)}>
-          <ChampionPortrait name={champion.name ?? ''} portraits={portraits ? 'rounded-full overflow-hidden' : ''}/>
+          <ChampionPortrait name={champion.name ?? ''} champion={champion.champion} portraits={portraits ? 'rounded-full overflow-hidden' : ''}/>
         </span>)}
     </div>
   )
@@ -59,13 +63,14 @@ export default function ListOfChampions({ champions, callback, gridCols, portrai
 
 interface ChampionPortraitProps {
   name: string;
+  champion: string;
   portraits?: string;
 }
 
-function ChampionPortrait({ name, portraits }: ChampionPortraitProps) {
+function ChampionPortrait({ name, champion, portraits }: ChampionPortraitProps) {
   return (
     <div className={`aspect-square bg-slate-800 ${portraits}`}>
-      <Image src={`/championavatars/${name}.png`}
+      <Image src={`/championavatars/${champion}.png`}
         width={120} height={120} alt={name} title={name} loading='lazy'
         className={`object-fill h-full w-full hover:opacity-50 hover:cursor-pointer ${portraits}`} />
     </div>

@@ -45,7 +45,7 @@ export default function Header({ user = undefined }: Props) {
         {/* <div className=''>{userInfo()} <Dropdown><Dropdown.Item onClick={() => console.log("item1")}/> <Dropdown.Item onClick={() => console.log("item2")}/></Dropdown></div> */}
         <div className='flex flex-row items-center gap-1'>
           {userInfo()}
-          <Dropdown>
+          {/* <Dropdown>
             {user?.aud === 'authenticated' && 
             <>
               <Dropdown.Item text="Change password" onClick={() => router.push("/login")} />
@@ -54,7 +54,7 @@ export default function Header({ user = undefined }: Props) {
             </>
             }
             {user === null && <Dropdown.Item text="Sign in" onClick={() => router.push("/login")} />}
-          </Dropdown>
+          </Dropdown> */}
         </div>
       </div>
     </header>
