@@ -47,6 +47,7 @@ enum ModalType {
 export default function ClientComponent({ user = undefined }: { user?: User | null }): JSX.Element {
   const champions = useRef<Champion[] | null>(null);
   const saveTimer = useRef<NodeJS.Timeout | null>(null);
+  const championsByUserRef = useRef<string>('');
   const [championsByUser, setChampionsByUser] = useState<ChampionsJSON>({ "lists": { "1": [] }, "chosen": "1" });
   const [championsFiltered, setChampionsFiltered] = useState<ChampionsFiltered>();
   const [search, setSearch] = useState<string>('');
@@ -76,6 +77,11 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
   useEffect(() => {
     localStorage.setItem('settings', JSON.stringify(settings))
   }, [settings])
+
+  useEffect(() => {
+    const base64 = btoa(JSON.stringify(championsByUser))
+    championsByUserRef.current = base64
+  }, [championsByUser])
 
   useEffect(() => {
     const getData = async () => {
@@ -258,8 +264,7 @@ export default function ClientComponent({ user = undefined }: { user?: User | nu
       setLoading(prevState => ({ ...prevState, saveButton: { isLoading: false } }))
       return
     }
-
-    const base64 = btoa(JSON.stringify(championsByUser))
+    const base64 = championsByUserRef.current
 
     if (user) {
       const { data, error } = await supabase.from('champions_by_user').update({ champions: base64 }).eq('id', user.id)
